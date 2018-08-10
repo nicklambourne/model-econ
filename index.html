@@ -17,19 +17,19 @@
     <div class="row">
         <div class="col-3 offset-1">
             <div class="form-group">
-                <label for="supply">Increase/Decrease Supply:</label>
+                <label for="demand">Increase/Decrease Demand:</label>
                 <input type="range"
-                       id="supply"
-                       name="supply"
+                       id="demand"
+                       name="demand"
                        value="0"
                        min="-15"
                        max="15"
                        step="1"
                        class="form-control-range">
-                <label for="demand">Increase/Decrease Demand:</label>
+                <label for="supply">Increase/Decrease Supply:</label>
                 <input type="range"
-                       id="demand"
-                       name="demand"
+                       id="supply"
+                       name="supply"
                        value="0"
                        min="-15"
                        max="15"
@@ -56,11 +56,13 @@
                 <br />
                 <p id="price" class="equilibrium">Equilibrium Price: $10.00</p>
                 <p id="quantity" class="equilibrium">Equilibrium Quantity: 10 units</p>
+                <p id="c-surplus" class="equilibrium">Consumer Surplus: 10 units</p>
+                <p id="s-surplus" class="equilibrium">Supplier Surplus: 10 units</p>
             </div>
         </div>
         <div class="col-8">
             <div style="width: 600px; height: 600px;">
-                <canvas id="myChart" width="400" height="400"></canvas>
+                <canvas id="myChart" width="500" height="400"></canvas>
             </div>
         </div>
     </div>
@@ -70,19 +72,19 @@
         const maxDims = 20;
 
         let getSupplyGradient = () => {
-            return -parseFloat(document.getElementById('s-elasticity').value);
+            return parseFloat(document.getElementById('s-elasticity').value);
         };
 
         let getSupplyIntercept = () => {
-            return maxDims + parseFloat(document.getElementById('supply').value);
+            return parseFloat(document.getElementById('supply').value);
         };
 
         let getDemandGradient = () => {
-            return parseFloat(document.getElementById('d-elasticity').value);
+            return -parseFloat(document.getElementById('d-elasticity').value);
         };
 
         let getDemandIntercept = () => {
-            return parseFloat(document.getElementById('demand').value);
+            return maxDims + parseFloat(document.getElementById('demand').value);
         };
 
         let createSupply = () => {
@@ -157,21 +159,24 @@
                     pointRadius: 15,
                     pointHoverRadius: 15,
                     backgroundColor: 'rgba(20, 90, 50, 0.5)',
-                    fill: false
+                    fill: false,
                 },
                 {
                     data: createSupply(),
                     borderWidth: 4,
                     borderColor: 'rgb(192, 57, 43)',
                     pointRadius: 0,
-                    fill: false
+                    fill: false,
+                    label: 'Supply'
                 },
                 {
                     data: createDemand(),
                     borderWidth: 4,
                     borderColor: 'rgb(0, 0, 161)',
                     pointRadius: 0,
-                    fill: false
+                    fill: '+2',
+                    backgroundColor: 'rgba(0, 0, 161, 0.3)',
+                    label: 'Demand'
                 },
                 {
                     data: createEquilibriumVertical(),
@@ -179,21 +184,28 @@
                     borderColor: 'rgba(20, 90, 50, 0.5)',
                     pointRadius: 0,
                     fill: false,
-                    borderDash: [5, 5]
+                    borderDash: [5, 5],
                 },
                 {
                     data: createEquilibriumHorizontal(),
                     borderWidth: 4,
                     borderColor: 'rgba(20, 90, 50, 0.5)',
+                    backgroundColor: 'rgba(192, 57, 43, 0.3)',
                     pointRadius: 0,
-                    fill: false,
-                    borderDash: [5, 5]
+                    fill: '1',
+                    borderDash: [5, 5],
                 }]
             },
             options: {
 
                 legend: {
-                    display: false
+                    display: true,
+                        labels: {
+                            filter: (legendItem, chartData) => {
+                                return chartData.datasets[legendItem.datasetIndex].label;
+                            }
+                        },
+                    position: 'right'
                 },
                 scales: {
                     yAxes: [{
@@ -201,6 +213,10 @@
                             beginAtZero: true,
                             min: 0,
                             max: maxDims
+                        },
+                        scaleLabel: {
+                            labelString: 'Price (S)',
+                            display: true
                         }
                     }],
                     xAxes: [{
@@ -211,6 +227,10 @@
                             beginAtZero: true,
                             min: 0,
                             max: maxDims
+                        },
+                        scaleLabel: {
+                            labelString: 'Quantity (Units)',
+                            display: true
                         }
                     }]
                 },
