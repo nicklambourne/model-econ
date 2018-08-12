@@ -55,9 +55,9 @@
                        class="form-control-range">
                 <br />
                 <p id="price" class="equilibrium">Equilibrium Price: $10.00</p>
-                <p id="quantity" class="equilibrium">Equilibrium Quantity: 10 units</p>
-                <p id="c-surplus" class="equilibrium">Consumer Surplus: 10 units</p>
-                <p id="s-surplus" class="equilibrium">Supplier Surplus: 10 units</p>
+                <p id="quantity" class="equilibrium">Equilibrium Quantity: 10.00 units</p>
+                <p id="c-surplus" class="equilibrium">Consumer Surplus: 50.00 units</p>
+                <p id="s-surplus" class="equilibrium">Supplier Surplus: 50.00 units</p>
             </div>
         </div>
         <div class="col-8">
@@ -69,14 +69,17 @@
 </body>
 <footer>
     <script>
-        const maxDims = 20;
+        let max_x = 20;
+        let max_y = 20;
+        let demand = 0;
+        let supply = 0;
 
         let getSupplyGradient = () => {
             return parseFloat(document.getElementById('s-elasticity').value);
         };
 
         let getSupplyIntercept = () => {
-            return parseFloat(document.getElementById('supply').value);
+            return supply;
         };
 
         let getDemandGradient = () => {
@@ -84,14 +87,14 @@
         };
 
         let getDemandIntercept = () => {
-            return maxDims + parseFloat(document.getElementById('demand').value);
+            return max_y + demand;
         };
 
         let createSupply = () => {
             let intercept = getSupplyIntercept();
             let gradient = getSupplyGradient();
             let coordinates = [];
-            for (let i = 0; i <= maxDims; i++) {
+            for (let i = 0; i <= max_x; i++) {
                 let x = i;
                 let y = gradient * x + intercept;
                 coordinates.push({x,y});
@@ -103,7 +106,7 @@
             let intercept = getDemandIntercept();
             let gradient = getDemandGradient();
             let coordinates = [];
-            for (let i = 0; i <= maxDims; i++) {
+            for (let i = 0; i <= max_x; i++) {
                 let x = i;
                 let y = gradient * x + intercept;
                 coordinates.push({x,y});
@@ -146,6 +149,21 @@
             coordinates.push({x: 0, y: equilibrium_y});
             coordinates.push({x: equilibrium_x, y: equilibrium_y});
             return coordinates;
+        };
+
+        let getConsumerSurplus = () => {
+            let demand_gradient = getDemandGradient();
+            let demand_intercept = getDemandIntercept();
+            let eq_x = getEquilibriumX();
+            let eq_y = getEquilibriumY();
+            return (demand_gradient/2) * Math.pow(eq_x, 2) + demand_intercept * eq_x - (eq_x*eq_y);
+        };
+
+        let getSupplierSurplus = () => {
+            let supply_gradient = getSupplyGradient();
+            let supply_intercept = getSupplyIntercept();
+            let eq_x = getEquilibriumX();
+            return (supply_gradient/2) * Math.pow(eq_x, 2) + supply_intercept * eq_x;
         };
 
         let ctx = document.getElementById("myChart");
@@ -212,10 +230,10 @@
                         ticks: {
                             beginAtZero: true,
                             min: 0,
-                            max: maxDims
+                            max: max_y
                         },
                         scaleLabel: {
-                            labelString: 'Price (S)',
+                            labelString: 'Price ($)',
                             display: true
                         }
                     }],
@@ -226,7 +244,7 @@
                         ticks: {
                             beginAtZero: true,
                             min: 0,
-                            max: maxDims
+                            max: max_x
                         },
                         scaleLabel: {
                             labelString: 'Quantity (Units)',
@@ -242,6 +260,11 @@
 
         let updateChartData = () => {
             let dataSets = myChart.data.datasets;
+            max_x = getEquilibriumX() * 2;
+            max_y = getEquilibriumY() * 2;
+            let options = myChart.options.scales;
+            options.xAxes[0].ticks.max = max_x;
+            options.yAxes[0].ticks.max = max_y;
             dataSets[0].data = createEquilibrium();
             dataSets[1].data = createSupply();
             dataSets[2].data = createDemand();
@@ -250,6 +273,8 @@
             myChart.update();
             document.getElementById('price').innerHTML = 'Equilibrium Price: $' + getEquilibriumY().toFixed(2).toString();
             document.getElementById('quantity').innerHTML = 'Equilibrium Quantity: ' + getEquilibriumX().toFixed(2).toString() + ' units';
+            document.getElementById('c-surplus').innerHTML = 'Consumer Surplus: ' + getConsumerSurplus().toFixed(2).toString() + ' units';
+            document.getElementById('s-surplus').innerHTML = 'Supplier Surplus: ' + getSupplierSurplus().toFixed(2).toString() + ' units';
         };
 
         document.getElementById('s-elasticity').onchange = updateChartData;
