@@ -9,3 +9,15 @@
 label {
     font-size: xx-small;
 }
+
+.btn {
+    font-size: 0.7rem;
+}
+
+.ds-button {
+    width: 49%;
+}
+
+.label-text {
+    margin-bottom: 0;
+}

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.0.4/math.min.js"></script>
+    <link rel="stylesheet" href="main.css">
 </head>
 <body>
     <div class="row" id="main">
@@ -17,24 +17,13 @@
     <div class="row">
         <div class="col-3 offset-1">
             <div class="form-group">
-                <label for="demand">Increase/Decrease Demand:</label>
-                <input type="range"
-                       id="demand"
-                       name="demand"
-                       value="0"
-                       min="-15"
-                       max="15"
-                       step="1"
-                       class="form-control-range">
-                <label for="supply">Increase/Decrease Supply:</label>
-                <input type="range"
-                       id="supply"
-                       name="supply"
-                       value="0"
-                       min="-15"
-                       max="15"
-                       step="1"
-                       class="form-control-range">
+                <p class="label-text">Demand:</p>
+                <button class="btn btn-danger ds-button" id="lower-demand">Lower Demand</button>
+                <button class="btn btn-success ds-button" id="raise-demand">Raise Demand</button>
+                <br/>
+                <p class="label-text">Supply:</p>
+                <button class="btn btn-danger ds-button" id="lower-supply">Lower Supply</button>
+                <button class="btn btn-success ds-button" id="raise-supply">Raise Supply</button>
                 <label for="s-elasticity">Supply Elasticity:</label>
                 <input type="range"
                        id="s-elasticity"
@@ -56,8 +45,8 @@
                 <br />
                 <p id="price" class="equilibrium">Equilibrium Price: $10.00</p>
                 <p id="quantity" class="equilibrium">Equilibrium Quantity: 10.00 units</p>
-                <p id="c-surplus" class="equilibrium">Consumer Surplus: 50.00 units</p>
-                <p id="s-surplus" class="equilibrium">Supplier Surplus: 50.00 units</p>
+                <p id="c-surplus" class="equilibrium">Consumer Surplus: $50.00</p>
+                <p id="s-surplus" class="equilibrium">Supplier Surplus: $50.00</p>
             </div>
         </div>
         <div class="col-8">
@@ -68,220 +57,7 @@
     </div>
 </body>
 <footer>
-    <script>
-        let max_x = 20;
-        let max_y = 20;
-        let demand = 0;
-        let supply = 0;
-
-        let getSupplyGradient = () => {
-            return parseFloat(document.getElementById('s-elasticity').value);
-        };
-
-        let getSupplyIntercept = () => {
-            return supply;
-        };
-
-        let getDemandGradient = () => {
-            return -parseFloat(document.getElementById('d-elasticity').value);
-        };
-
-        let getDemandIntercept = () => {
-            return max_y + demand;
-        };
-
-        let createSupply = () => {
-            let intercept = getSupplyIntercept();
-            let gradient = getSupplyGradient();
-            let coordinates = [];
-            for (let i = 0; i <= max_x; i++) {
-                let x = i;
-                let y = gradient * x + intercept;
-                coordinates.push({x,y});
-            }
-            return coordinates
-        };
-
-        let createDemand = () => {
-            let intercept = getDemandIntercept();
-            let gradient = getDemandGradient();
-            let coordinates = [];
-            for (let i = 0; i <= max_x; i++) {
-                let x = i;
-                let y = gradient * x + intercept;
-                coordinates.push({x,y});
-            }
-            return coordinates
-        };
-
-        let getEquilibriumX = () => {
-            let demand_gradient = getDemandGradient();
-            let demand_intercept = getDemandIntercept();
-            let supply_gradient = getSupplyGradient();
-            let supply_intercept = getSupplyIntercept();
-            return (demand_intercept - supply_intercept) / (supply_gradient - demand_gradient);
-        };
-
-        let getEquilibriumY = () => {
-            let demand_gradient = getDemandGradient();
-            let demand_intercept = getDemandIntercept();
-            let equilibrium_x = getEquilibriumX();
-            return equilibrium_x * demand_gradient + demand_intercept;
-        };
-
-        let createEquilibrium = () => {
-            return [{x: getEquilibriumX(), y: getEquilibriumY()}];
-        };
-
-        let createEquilibriumVertical = () => {
-            let coordinates = [];
-            let equilibrium_x = getEquilibriumX();
-            let equilibrium_y = getEquilibriumY();
-            coordinates.push({x: equilibrium_x, y: 0});
-            coordinates.push({x: equilibrium_x, y: equilibrium_y});
-            return coordinates;
-        };
-
-        let createEquilibriumHorizontal = () => {
-            let coordinates = [];
-            let equilibrium_x = getEquilibriumX();
-            let equilibrium_y = getEquilibriumY();
-            coordinates.push({x: 0, y: equilibrium_y});
-            coordinates.push({x: equilibrium_x, y: equilibrium_y});
-            return coordinates;
-        };
-
-        let getConsumerSurplus = () => {
-            let demand_gradient = getDemandGradient();
-            let demand_intercept = getDemandIntercept();
-            let eq_x = getEquilibriumX();
-            let eq_y = getEquilibriumY();
-            return (demand_gradient/2) * Math.pow(eq_x, 2) + demand_intercept * eq_x - (eq_x*eq_y);
-        };
-
-        let getSupplierSurplus = () => {
-            let supply_gradient = getSupplyGradient();
-            let supply_intercept = getSupplyIntercept();
-            let eq_x = getEquilibriumX();
-            return (supply_gradient/2) * Math.pow(eq_x, 2) + supply_intercept * eq_x;
-        };
-
-        let ctx = document.getElementById("myChart");
-        let myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [
-                {
-                    data: createEquilibrium(),
-                    borderWidth: 4,
-                    pointRadius: 15,
-                    pointHoverRadius: 15,
-                    backgroundColor: 'rgba(20, 90, 50, 0.5)',
-                    fill: false,
-                },
-                {
-                    data: createSupply(),
-                    borderWidth: 4,
-                    borderColor: 'rgb(192, 57, 43)',
-                    pointRadius: 0,
-                    fill: false,
-                    label: 'Supply'
-                },
-                {
-                    data: createDemand(),
-                    borderWidth: 4,
-                    borderColor: 'rgb(0, 0, 161)',
-                    pointRadius: 0,
-                    fill: '+2',
-                    backgroundColor: 'rgba(0, 0, 161, 0.3)',
-                    label: 'Demand'
-                },
-                {
-                    data: createEquilibriumVertical(),
-                    borderWidth: 4,
-                    borderColor: 'rgba(20, 90, 50, 0.5)',
-                    pointRadius: 0,
-                    fill: false,
-                    borderDash: [5, 5],
-                },
-                {
-                    data: createEquilibriumHorizontal(),
-                    borderWidth: 4,
-                    borderColor: 'rgba(20, 90, 50, 0.5)',
-                    backgroundColor: 'rgba(192, 57, 43, 0.3)',
-                    pointRadius: 0,
-                    fill: '1',
-                    borderDash: [5, 5],
-                }]
-            },
-            options: {
-
-                legend: {
-                    display: true,
-                        labels: {
-                            filter: (legendItem, chartData) => {
-                                return chartData.datasets[legendItem.datasetIndex].label;
-                            }
-                        },
-                    position: 'right'
-                },
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            min: 0,
-                            max: max_y
-                        },
-                        scaleLabel: {
-                            labelString: 'Price ($)',
-                            display: true
-                        }
-                    }],
-                    xAxes: [{
-                        id: 'x-axis',
-                        type: 'linear',
-                        position: 'bottom',
-                        ticks: {
-                            beginAtZero: true,
-                            min: 0,
-                            max: max_x
-                        },
-                        scaleLabel: {
-                            labelString: 'Quantity (Units)',
-                            display: true
-                        }
-                    }]
-                },
-                tooltips: {
-                    enabled: false
-                }
-            }
-        });
-
-        let updateChartData = () => {
-            let dataSets = myChart.data.datasets;
-            max_x = getEquilibriumX() * 2;
-            max_y = getEquilibriumY() * 2;
-            let options = myChart.options.scales;
-            options.xAxes[0].ticks.max = max_x;
-            options.yAxes[0].ticks.max = max_y;
-            dataSets[0].data = createEquilibrium();
-            dataSets[1].data = createSupply();
-            dataSets[2].data = createDemand();
-            dataSets[3].data = createEquilibriumVertical();
-            dataSets[4].data = createEquilibriumHorizontal();
-            myChart.update();
-            document.getElementById('price').innerHTML = 'Equilibrium Price: $' + getEquilibriumY().toFixed(2).toString();
-            document.getElementById('quantity').innerHTML = 'Equilibrium Quantity: ' + getEquilibriumX().toFixed(2).toString() + ' units';
-            document.getElementById('c-surplus').innerHTML = 'Consumer Surplus: ' + getConsumerSurplus().toFixed(2).toString() + ' units';
-            document.getElementById('s-surplus').innerHTML = 'Supplier Surplus: ' + getSupplierSurplus().toFixed(2).toString() + ' units';
-        };
-
-        document.getElementById('s-elasticity').onchange = updateChartData;
-        document.getElementById('demand').onchange = updateChartData;
-        document.getElementById('d-elasticity').onchange = updateChartData;
-        document.getElementById('supply').onchange = updateChartData;
-    </script>
+    <script src="main.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
